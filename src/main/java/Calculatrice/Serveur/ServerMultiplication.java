@@ -1,0 +1,46 @@
+package Calculatrice.Serveur;
+
+import java.net.*;
+import java.io.*;
+
+public class ServerMultiplication {
+    public static void main(String[] args) throws IOException {
+        int portNumber = 1236;
+        try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
+            System.out.println("Serveur Multiplication en attente sur le port " + portNumber);
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                new MultiplicationHandler(clientSocket).start();
+            }
+        } catch (IOException e) {
+            System.err.println("Erreur lors de l'écoute sur le port " + portNumber);
+            System.exit(-1);
+        }
+    }
+}
+
+class MultiplicationHandler extends Thread {
+    private Socket clientSocket;
+
+    public MultiplicationHandler(Socket socket) {
+        this.clientSocket = socket;
+    }
+
+    public void run() {
+        try {
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+
+            String inputLine = in.readLine();
+            String[] operands = inputLine.split(";");
+            int result = Integer.parseInt(operands[0]) * Integer.parseInt(operands[1]);
+            out.println(result);
+
+            in.close();
+            out.close();
+            clientSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
